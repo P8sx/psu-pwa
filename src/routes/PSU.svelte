@@ -139,16 +139,18 @@
       }
     }
     function setVoltage(event:any){
+      console.log("test")
       if(event instanceof PointerEvent || event instanceof KeyboardEvent && event.key === 'Enter'){
         if(v_requested <= 31){
-          sendData('VSET1:'+v_requested.toFixed(2)+'\n')
+          sendData('VSET1:'+parseFloat(v_requested).toFixed(2)+'\n')
         }
       }
     }
     function setCurrent(event:any){
+      console.log("test")
       if(event instanceof PointerEvent || event instanceof KeyboardEvent && event.key === 'Enter'){
         if(i_requested <= 5.1){
-          sendData('ISET1:'+i_requested.toFixed(3)+'\n')
+          sendData('ISET1:'+parseFloat(i_requested).toFixed(3)+'\n')
         }
       }
 

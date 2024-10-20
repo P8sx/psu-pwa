@@ -1,13 +1,13 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { Button, Icon } from '@sveltestrap/sveltestrap';
+  import { Button, Icon, Input } from '@sveltestrap/sveltestrap';
   
   function connect() {
       dispatch('connect');
     }
   
   const dispatch = createEventDispatcher();
-
+  let dupa = 5;
 
 </script>
 
@@ -28,4 +28,5 @@
     <Icon name="gear-wide-connected" />
     <span>Connect</span>
   </Button>
+
 </div>

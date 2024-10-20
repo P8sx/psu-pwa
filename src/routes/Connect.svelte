@@ -1,16 +1,31 @@
 <script>
+  import { createEventDispatcher } from 'svelte';
+  import { Button, Icon } from '@sveltestrap/sveltestrap';
+  
   function connect() {
       dispatch('connect');
     }
   
-  import { createEventDispatcher } from 'svelte';
   const dispatch = createEventDispatcher();
+
+
 </script>
 
-<div class="flex flex-col justify-center items-center h-screen">
-    <p class="text-lg mb-4">Connect to KORAD bench power supply</p>
-    <button on:click={connect} class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">
-    <svg class="fill-current w-4 h-4 mr-2"  viewBox="0 0 16 16"><path fill="currentColor" d="M5 8a.5.5 0 1 0 0-1a.5.5 0 0 0 0 1m1.5 1.5a.5.5 0 1 1-1 0a.5.5 0 0 1 1 0M8 10a.5.5 0 1 0 0-1a.5.5 0 0 0 0 1m2.5-.5a.5.5 0 1 1-1 0a.5.5 0 0 1 1 0M7 8a.5.5 0 1 0 0-1a.5.5 0 0 0 0 1m2.5-.5a.5.5 0 1 1-1 0a.5.5 0 0 1 1 0M11 8a.5.5 0 1 0 0-1a.5.5 0 0 0 0 1M3.022 5a2 2 0 0 0-1.944 2.47l.725 3A2 2 0 0 0 3.747 12h8.519a2 2 0 0 0 1.944-1.53l.726-3A2 2 0 0 0 12.992 5zM2.05 7.235A1 1 0 0 1 3.022 6h9.97a1 1 0 0 1 .972 1.235l-.726 3a1 1 0 0 1-.972.765h-8.52a1 1 0 0 1-.971-.765z"/></svg>
+<style>
+  .centered-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+</style>
+
+<div class="centered-container">
+  <p>Connect to KORAD power supply</p>
+  <Button color="primary" on:click={connect}>
+    <Icon name="gear-wide-connected" />
     <span>Connect</span>
-    </button>
+  </Button>
 </div>

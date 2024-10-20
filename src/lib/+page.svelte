@@ -1,8 +1,8 @@
 <script lang="ts">
+  import "../app.css";
   import ConnectScreen from './Connect.svelte';
   import PSUScreen from './PSU.svelte';
-  import { Styles } from '@sveltestrap/sveltestrap';
-  
+
   let connected:boolean = false;
   let port:any;
 
@@ -23,8 +23,6 @@
     }
   }
 </script>
-
-<Styles />
 
 {#if !connected}
   <ConnectScreen on:connect={handleConnect} />

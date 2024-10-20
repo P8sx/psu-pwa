@@ -1,7 +1,7 @@
 {
 	"name": "KORAD PWA",
 	"short_name": "psu-pwa",
-	"start_url": "/",
+	"start_url": "/psu-pwa",
 	"display": "standalone",
 	"theme_color": "#ffffff",
 	"background_color": "#000000",

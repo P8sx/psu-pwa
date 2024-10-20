@@ -155,6 +155,12 @@
       }
 
     }
+    function memoryRecall(id:number){
+      sendData('RCL'+id.toString()+'\n')
+    }
+    function memorySave(id:number){
+      sendData('SAV'+id.toString()+'\n')
+    }
   </script>
 
 
@@ -220,6 +226,16 @@
         </Row>  
 
         <Row class="text-center">
+          <Col>
+            <span>Power:</span>          
+          </Col>
+          <Col>
+            <span>{Math.round(v_out*i_out * 100) / 100} W</span>         
+          </Col>
+        </Row>  
+
+
+        <Row class="text-center mb-2">
           <span>Mode:</span>
         </Row>
 
@@ -236,7 +252,7 @@
           </Col>
         </Row>
 
-        <Row class="text-center">
+        <Row class="text-center mb-2">
           <span>Options</span>
         </Row>
 
@@ -252,7 +268,30 @@
             <span>{ovp_mode_status ? 'OVP - Enabled' : 'OVP - Disabled'}</span>
           </Button>
         </Row>
+
+        <Row class="text-center mb-2">
+          <span>Memory:</span>
+        </Row>
+
+        {#each {length: 5} as _, i}
+        <Row class="mb-2">
+          <Col>
+            <Button class="btn-success" style="width: 100%;" on:click={()=>memoryRecall(i+1)} >
+              <span>M{i+1}</span>
+            </Button>           
+          </Col>
+          <Col>
+            <Button class="btn-warning" style="width: 100%;" on:click={()=>memorySave(i+1)} >
+              <span>Save</span>
+            </Button>           
+          </Col>
+        </Row>
+        {/each}
       </Col>
+
+
+
+
     </Row>
 </div>
 

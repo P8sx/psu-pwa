@@ -3,7 +3,7 @@
 
     import { createEventDispatcher } from 'svelte';
     import { Semaphore } from '../lib/semaphore';
-    import { Button, Row, Col, Label, Input, Icon } from '@sveltestrap/sveltestrap';
+    import { Button, Row, Col, Label, Input, Icon, ButtonGroup } from '@sveltestrap/sveltestrap';
 
     const dispatch = createEventDispatcher();
     const serialSemaphore = new Semaphore(1);
@@ -291,16 +291,14 @@
         </Row>
 
         <Row class="mb-2">
-          <Col>
+          <ButtonGroup>
             <Button class={cc_cv_mode?"btn-success":"btn-outline-success"} style="width: 100%;" disabled >
               <span>CV</span>
             </Button>           
-          </Col>
-          <Col>
             <Button class={cc_cv_mode?"btn-outline-danger":"btn-danger"}  style="width: 100%;" disabled>
               <span>CC</span>
             </Button>           
-          </Col>
+          </ButtonGroup>
         </Row>
 
         <Row class="text-center mb-2">
@@ -326,16 +324,14 @@
 
         {#each {length: 5} as _, i}
         <Row class="mb-2">
-          <Col>
+          <ButtonGroup>
             <Button class="btn-success" style="width: 100%;" on:click={()=>memoryRecall(i+1)} >
               <span>M{i+1}</span>
-            </Button>           
-          </Col>
-          <Col>
+            </Button>       
             <Button class="btn-warning" style="width: 100%;" on:click={()=>memorySave(i+1)} >
               <span>Save</span>
-            </Button>           
-          </Col>
+            </Button>    
+          </ButtonGroup>
         </Row>
         {/each}
       </Col>

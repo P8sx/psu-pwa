@@ -28,5 +28,4 @@
     <Icon name="gear-wide-connected" />
     <span>Connect</span>
   </Button>
-
 </div>

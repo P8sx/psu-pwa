@@ -1,13 +1,27 @@
 <script lang="ts">
     export let port:any;
+
     import { createEventDispatcher } from 'svelte';
-    import { Semaphore } from './../lib/semaphore';
-    import { Button, Form, Row, Col, Label, Input, Icon } from '@sveltestrap/sveltestrap';
+    import { Semaphore } from '../lib/semaphore';
+    import { Button, Row, Col, Label, Input, Icon } from '@sveltestrap/sveltestrap';
+
     const dispatch = createEventDispatcher();
     const serialSemaphore = new Semaphore(1);
-    
+
+    const korad_type: { [key: string]: [number, number] } = {
+      "3003":[30,3],
+      "3005":[30,5],
+      "3010":[30,10],
+      "6002":[60,2],
+      "6003":[60,3],
+      "6005":[60,5],
+    }
+
     let writer:any;
     let reader:any;
+
+    let v_max:number = 30
+    let i_max:number = 5
 
     let v_out:number = 0.0
     let i_out:number = 0.0
@@ -28,7 +42,7 @@
       });
     }
 
-    async function sendDataWithResponse(message:string, responseLength:number) {
+    async function serialReadUntil(message:string, numberOfBytes:number) {
       if (port && writer && reader) {
         let response:string = ""
 
@@ -36,7 +50,7 @@
         await writer.write(new TextEncoder().encode(message));
 
         let offset = 0;
-        while (offset < responseLength) {
+        while (offset < numberOfBytes) {
           const { value, done } = await reader.read();
           if (done) {
             reader.releaseLock();
@@ -51,8 +65,34 @@
       }
       return ""
     }
-  
-    async function sendData(message:string) {
+    async function serialReadLine(message:string) {
+      if (port && writer && reader) {
+        let response:string = ""
+
+        await serialSemaphore.acquire();
+        await writer.write(new TextEncoder().encode(message));
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) {
+            reader.releaseLock();
+            break;
+          }
+          response += new TextDecoder('ascii').decode(value.buffer);
+
+          if (message.includes('\n')) {
+            const cleanMessage = response.trim();
+            serialSemaphore.release();
+            return response;
+          }
+        }
+        serialSemaphore.release();
+        return response;
+      }
+      return ""
+    }
+
+    async function serialWrite(message:string) {
       if (port && writer) {
         await serialSemaphore.acquire();
         await writer.write(new TextEncoder().encode(message));
@@ -67,15 +107,27 @@
         if (port) {
           writer = port.writable.getWriter();
           reader = port.readable.getReader();
-          console.log(port)
+
+          const idn = await serialReadLine('*IDN?\n');
+          const typeFound = Object.keys(korad_type).find(type => idn.includes(type));
+
+          if (typeFound){
+            console.log("Found KORAD:",typeFound)
+            v_max = korad_type[typeFound][0];
+            i_max = korad_type[typeFound][1];
+          }
+          else{
+            console.log("No KORAD id found setting default 30V/5A")
+          }
+
           while (true && port) {
-            v_set = Number(await sendDataWithResponse('VSET1?\n', 6));
-            i_set = Number(await sendDataWithResponse('ISET1?\n', 6));
+            v_set = Number(await serialReadUntil('VSET1?\n', 6));
+            i_set = Number(await serialReadUntil('ISET1?\n', 6));
             for (let i = 0; i < 5; i++) {
-              v_out = Number(await sendDataWithResponse('VOUT1?\n', 6));
-              i_out = Number(await sendDataWithResponse('IOUT1?\n', 6));
+              v_out = Number(await serialReadUntil('VOUT1?\n', 6));
+              i_out = Number(await serialReadUntil('IOUT1?\n', 6));
             }
-            const status = await sendDataWithResponse('STATUS?\n', 1);
+            const status = await serialReadUntil('STATUS?\n', 1);
             const statusByte = new Uint8Array([status.charCodeAt(0)]) ;
 
             output_status = (statusByte[0] & 0x40) !== 0;
@@ -116,50 +168,49 @@
 
     function togglePSU(){
       if(output_status){
-        sendData('OUT0\n')
+        serialWrite('OUT0\n')
       }
       else{
-        sendData('OUT1\n')
+        serialWrite('OUT1\n')
       }
     }
     function toggleOCP(){
       if(ocp_mode_status){
-        sendData('OCP0\n')
+        serialWrite('OCP0\n')
       }
       else{
-        sendData('OCP1\n')
+        serialWrite('OCP1\n')
       }
     }
     function toggleOVP(){
       if(ovp_mode_status){
-        sendData('OVP0\n')
+        serialWrite('OVP0\n')
       }
       else{
-        sendData('OVP1\n')
+        serialWrite('OVP1\n')
       }
     }
+
     function setVoltage(event:any){
-      console.log("test")
       if(event instanceof PointerEvent || event instanceof KeyboardEvent && event.key === 'Enter'){
-        if(v_requested <= 31){
-          sendData('VSET1:'+parseFloat(v_requested).toFixed(2)+'\n')
+        if(v_requested <= v_max){
+          serialWrite('VSET1:'+parseFloat(v_requested).toFixed(2)+'\n')
         }
       }
     }
     function setCurrent(event:any){
-      console.log("test")
       if(event instanceof PointerEvent || event instanceof KeyboardEvent && event.key === 'Enter'){
-        if(i_requested <= 5.1){
-          sendData('ISET1:'+parseFloat(i_requested).toFixed(3)+'\n')
+        if(i_requested <= i_max){
+          serialWrite('ISET1:'+parseFloat(i_requested).toFixed(3)+'\n')
         }
       }
 
     }
     function memoryRecall(id:number){
-      sendData('RCL'+id.toString()+'\n')
+      serialWrite('RCL'+id.toString()+'\n')
     }
     function memorySave(id:number){
-      sendData('SAV'+id.toString()+'\n')
+      serialWrite('SAV'+id.toString()+'\n')
     }
   </script>
 
@@ -179,7 +230,7 @@
             <Button color="success" on:click={setVoltage}>Set</Button>
           </Col>
         </Row>
-          <LineChart bind:this={v_chart} id="v_chart" xLabel="Time (s)" yLabel="Voltage (V)" yMin={0} yMax={31} />
+          <LineChart bind:this={v_chart} id="v_chart" xLabel="Time (s)" yLabel="Voltage (V)" yMin={0} yMax={v_max + 1} />
       </Col>
 
 
@@ -195,7 +246,7 @@
             <Button color="success" on:click={setCurrent}>Set</Button>
           </Col>
         </Row>
-          <LineChart bind:this={i_chart} id="i_chart" xLabel="Time (s)" yLabel="Current (A)" yMin={0} yMax={5.2} />
+          <LineChart bind:this={i_chart} id="i_chart" xLabel="Time (s)" yLabel="Current (A)" yMin={0} yMax={i_max + 0.2} />
       </Col>
 
 
@@ -298,22 +349,3 @@
   
 <style>
 </style>
-
-
-    
-<!-- <p>Connected to serial port.Vout:{v_out} Iout:{i_out} .Vset:{v_set} Iset:{i_set},</p>
-<p>output: {output_status}, 
-  ovp_mode_status: {ovp_mode_status}, 
-  ocp_mode_status: {ocp_mode_status}, 
-  cc_cv_mode: {cc_cv_mode}</p>
-
-<button on:click={() => sendData('OUT0\n') }>
-  Send Hello
-</button>
-<button on:click={() => sendData('OUT1\n')}>
-  Send Test
-</button>
-
-<button on:click={disconnect}>
-  Disconnect
-</button> -->

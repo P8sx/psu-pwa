@@ -1,6 +1,6 @@
 <script lang="ts">
   import ConnectScreen from './Connect.svelte';
-  import PSUScreen from './PSU.svelte';
+  import PSUScreen from './KORAD.svelte';
   import { Styles } from '@sveltestrap/sveltestrap';
   
   let connected:boolean = false;

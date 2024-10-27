@@ -80,6 +80,7 @@
       items.forEach(element => {
         totalTime +=+ element.period
       });
+      console.log(totalTime)
     }
 
     function setOutput(step: Item){
@@ -111,11 +112,6 @@
         setOutput({id: 0, target_v: 0, target_c: 0, period: 0});
       }
     }
-
-    function getTimeLeft(timeout) {
-      return Math.ceil((timeout._idleStart + timeout._idleTimeout - Date.now()) / 1000);
-    }
-
     let isOpen:boolean = false;
 
   </script>
@@ -138,7 +134,7 @@
       <div class="d-flex justify-content-end align-items-center my-2" >
         <Progress class="mx-3" style="width:100%; height: 2rem;" multi>
           {#each items as item, index}
-            <Progress animated={currentCycle + 1 > index && cycleStatus} color="{item.id % 2 == 0 ? 'secondary' : 'primary'}" bar value={item.period} max={totalTime}>
+            <Progress animated={currentCycle + 1 > index && cycleStatus} color="{item.id % 2 == 0 ? 'secondary' : 'primary'}" bar value={Number(item.period * 1000).toFixed(0)} max={Number(totalTime * 1000).toFixed(0)}>
               {#if currentCycle == index && cycleStatus}
                 {Number(item.period - currentCycleTimeLeft / 1000).toFixed(2)}s
               {:else}

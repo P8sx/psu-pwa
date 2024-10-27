@@ -5,7 +5,7 @@
     import { flip } from "svelte/animate";
     import { persisted } from 'svelte-persisted-store'
     import { inputValid } from '../lib/input_valid'
-    
+
     const dispatch = createEventDispatcher();
     const flipDurationMs = 0;
 
@@ -133,7 +133,7 @@
 
 <Row class="p-0 mt-2 mx-0">
   <Collapse {isOpen} class="px-0">
-    <Col class="border border-primary rounded me-1">
+    <Col class="border border-primary rounded">
       <div class="d-flex justify-content-end align-items-center my-2" >
         <Progress class="mx-3" style="width:100%; height: 2rem;" multi>
           {#each items as item, index}
@@ -159,7 +159,7 @@
             <th style="width: 8rem;">
               <div class="d-flex justify-content-between align-items-center">
                 <span>Control</span>
-                <Button color="none" on:click={()=>addNewItem()}>
+                <Button color="success" on:click={()=>addNewItem()}>
                   <Icon name="plus" />
                 </Button>
               </div>

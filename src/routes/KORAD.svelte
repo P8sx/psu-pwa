@@ -14,6 +14,7 @@
     let power_off_connect = persisted('power_off_connect', true)
     let power_off_disconnect = persisted('power_off_disconnect', true)
     let power_off_ov_v_change = persisted('power_off_ov_v_change', false)
+    let show_power = persisted('show_power', false)
 
     let chart:LineChart;
 
@@ -291,7 +292,7 @@
 
 
     <div style="width: fit-content;" class="p-0 ms-auto">
-        <Dropdown>
+        <Dropdown autoClose="outside">
           <ButtonGroup>
             <Button id="light" color="primary" outline active={$colorMode === 'light'} on:click={() => useColorMode('light')}>
               <Icon name="sun-fill" />
@@ -307,12 +308,11 @@
             <Tooltip target="auto" placement="bottom">Auto Mode</Tooltip>
           <DropdownToggle class="px-1" caret>
             <Icon name="gear-wide"></Icon>
-          </DropdownToggle>
+          </DropdownToggle> 
           </ButtonGroup>
 
           <DropdownMenu end>
-              <DropdownItem header>Safety Options</DropdownItem>
-              <DropdownItem divider />
+              <DropdownItem header>Safety options</DropdownItem>
               <DropdownItem>
                 <Input type="switch" reverse label="Power OFF on connect" bind:checked={$power_off_connect}/>
               </DropdownItem>
@@ -322,6 +322,12 @@
               <DropdownItem >
                 <Input type="switch" reverse label="Power OFF on V change" bind:checked={$power_off_ov_v_change}/>
               </DropdownItem>
+              <DropdownItem divider />
+              <DropdownItem header>Other options</DropdownItem>
+              <DropdownItem >
+                <Input type="switch" reverse label="Show power" bind:checked={$show_power}/>
+              </DropdownItem>
+              <DropdownItem divider />
             </DropdownMenu>
           </Dropdown>
       
@@ -353,6 +359,16 @@
       <p class="display-1 text-center mt-0"><strong>{i_out.toFixed(3)}</strong></p>
     </div>
   </Row>
+
+  {#if $show_power}
+  <Row class="mt-2 mx-0">
+    <Col class="border border-primary rounded me-1">
+      <p class="mb-0">Power (W)</p>
+      <p class="display-3 text-center mt-0"><strong>{Number(v_out*i_out).toFixed(2)}</strong></p>
+    </Col>
+  </Row>
+  {/if}
+
 
   <Row class="mt-2">
     <Col class="me-1" >
@@ -440,6 +456,10 @@
   <ProgrammableTable on:callSetOutput={cycleOutput}/>
 </div>
 
-  
+
 <style>
+:global(.dropdown-item > .form-check.form-check-reverse.form-switch) {
+  text-align: left;
+}
+
 </style>

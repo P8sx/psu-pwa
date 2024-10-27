@@ -8,7 +8,7 @@
     const dispatch = createEventDispatcher();
     const flipDurationMs = 0;
 
-    let preferences = persisted('prog_points', [])
+    let prog_points = persisted('prog_points', [])
 
     export let v_max = 31
     export let i_max = 5
@@ -21,7 +21,7 @@
     }
 
     let totalTime:number = 0
-    let items: Item[] = $preferences;
+    let items: Item[] = $prog_points;
     let currentCycle: number = 0
     let currentCycleTimeStart: number = 0
     let currentCycleTimeLeft: number = 0
@@ -79,7 +79,7 @@
 
     $: if(items){
       totalTime = 0
-      preferences.set(items)
+      prog_points.set(items)
       items.forEach(element => {
         totalTime +=+ element.period
       });
@@ -119,17 +119,17 @@
 
 
 <Row class="justify-content-end mt-2">
-  <Col class="px-0">
+  <Col>
     <p class="mb-0 display-6">Programmable output</p>
   </Col>
-  <Col class="pe-0" xs="auto">
-    <Button size="lg" style="height:100%; width:fit-content" color="primary" on:click={() => (isOpen = !isOpen)}>
+  <Col xs="auto">
+    <Button outline size="lg" style="height:100%; width:fit-content" color="primary" on:click={() => (isOpen = !isOpen)}>
       <Icon name="{isOpen?"arrow-bar-up":"arrow-bar-down"}" />
     </Button>
   </Col>
 </Row>
 
-<Row class="p-0 mt-2">
+<Row class="p-0 mt-2 mx-0">
   <Collapse {isOpen} class="px-0">
     <Col class="border border-primary rounded me-1">
       <div class="d-flex justify-content-end align-items-center my-2" >
@@ -147,7 +147,7 @@
         <Button class="me-2" color={cycleStatus?"danger":"success"} style="width:fit-content" on:click={()=>{cycle(!cycleStatus)}}>{cycleStatus?"STOP":"Start"}</Button>
       </div>
       
-      <Table>
+      <Table class="mx-3" style="width: fit-content;">
         <thead>
           <tr>
             <th>No.</th>
@@ -157,7 +157,7 @@
             <th style="width: 8rem;">
               <div class="d-flex justify-content-between align-items-center">
                 <span>Control</span>
-                <Button color="success" on:click={()=>addNewItem()}>
+                <Button color="none" on:click={()=>addNewItem()}>
                   <Icon name="plus" />
                 </Button>
               </div>

@@ -21,7 +21,7 @@
 </style>
 
 <div class="centered-container">
-  <p>Connect to KORAD power supply</p>
+  <p>Connect to KORAD/TENMA power supply</p>
   <Button color="primary" on:click={connect}>
     <Icon name="gear-wide-connected" />
     <span>Connect</span>

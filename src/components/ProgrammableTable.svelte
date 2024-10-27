@@ -2,9 +2,10 @@
     import { createEventDispatcher } from 'svelte';
     import { Button, Input, Icon, Table, Col, Row, Progress, Collapse} from '@sveltestrap/sveltestrap';
     import { dndzone } from 'svelte-dnd-action';
-    import {flip} from "svelte/animate";
+    import { flip } from "svelte/animate";
     import { persisted } from 'svelte-persisted-store'
-
+    import { inputValid } from '../lib/input_valid'
+    
     const dispatch = createEventDispatcher();
     const flipDurationMs = 0;
 
@@ -115,6 +116,7 @@
     }
     let isOpen:boolean = false;
 
+
   </script>
 
 
@@ -169,10 +171,10 @@
             <tr animate:flip="{{duration: flipDurationMs}}">
               <th scope="row">{item.id}</th>
               <th>
-                <Input type="number" step="0.01" lang="en" min="0.00" max={v_max} bind:value={item.target_v}/>
+                <Input type="number" step="0.01" lang="en" min="0.00" max={v_max} bind:value={item.target_v} on:input={(event) => inputValid(event, 0, v_max, { set: val => item.target_v = val }, 2)}/>
               </th>
               <th>
-                <Input type="number" step="0.001" lang="en" min="0.00" max={i_max} bind:value={item.target_c}/>
+                <Input type="number" step="0.001" lang="en" min="0.00" max={i_max} bind:value={item.target_c} on:input={(event) => inputValid(event, 0, i_max, { set: val => item.target_c = val }, 3)}/>
               </th>
               <th>
                 <Input type="number" step={0.01} lang="en" min={0} bind:value={item.period} placeholder="Time (ex. 2.230 => 2230 ms) " />

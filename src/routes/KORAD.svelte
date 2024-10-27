@@ -7,11 +7,13 @@
     import LineChart from '../components/LineChart.svelte';
     import ProgrammableTable from '../components/ProgrammableTable.svelte'
     import { persisted } from 'svelte-persisted-store'
+    import { inputValid } from '../lib/input_valid'
     
     let v_user = persisted('v_user', 0)
     let i_user = persisted('i_user', 0)
     let power_off_connect = persisted('power_off_connect', true)
     let power_off_disconnect = persisted('power_off_disconnect', true)
+    let power_off_ov_v_change = persisted('power_off_ov_v_change', false)
 
     let chart:LineChart;
 
@@ -263,6 +265,9 @@
     }
 
     $: if(v_requested){
+      if($power_off_ov_v_change){
+          setPSU(false);
+      }
       setVoltage(v_requested)
       v_user.set(v_requested)
 
@@ -306,11 +311,16 @@
           </ButtonGroup>
 
           <DropdownMenu end>
+              <DropdownItem header>Safety Options</DropdownItem>
+              <DropdownItem divider />
               <DropdownItem>
                 <Input type="switch" reverse label="Power OFF on connect" bind:checked={$power_off_connect}/>
               </DropdownItem>
               <DropdownItem >
                 <Input type="switch" reverse label="Power OFF on disconnect" bind:checked={$power_off_disconnect}/>
+              </DropdownItem>
+              <DropdownItem >
+                <Input type="switch" reverse label="Power OFF on V change" bind:checked={$power_off_ov_v_change}/>
               </DropdownItem>
             </DropdownMenu>
           </Dropdown>
@@ -357,7 +367,10 @@
 
       <InputGroup size="lg">
         <Button color="primary" on:click={()=>(v_requested = v_input = parseFloat(Number(v_requested - 0.10).toFixed(2)))}>-</Button>
-        <Input type="number" step="0.01" lang="en" min="0.00" max={v_max} bind:value={v_input} id="v_input" style="text-align: center;" on:blur={() => {v_requested = v_input}} on:keydown={(event)=>{if(event.key === 'Enter') v_requested = v_input}}/>
+        <Input type="number" step="0.01" lang="en" min="0.00" max={v_max} bind:value={v_input} id="v_input" style="text-align: center;" 
+          on:blur={() => {v_requested = v_input}} 
+          on:keydown={(event)=>{if(event.key === 'Enter') v_requested = v_input}} 
+          on:input={(event) => inputValid(event, 0, v_max, { set: val => v_input = val }, 2)}/>
         <Button color="primary" on:click={()=>(v_requested = v_input = parseFloat(Number(v_requested + 0.10).toFixed(2)))}>+</Button>
       </InputGroup>
 
@@ -398,7 +411,10 @@
       </Row>
       <InputGroup size="lg">
         <Button color="primary" on:click={()=>(i_requested = i_input = parseFloat(Number(i_requested - 0.10).toFixed(2)))}>-</Button>
-        <Input type="number" step="0.001" lang="en" min="0.00" max={i_max} bind:value={i_input} id="i_input" style="text-align: center;" on:blur={() => {i_requested = i_input}} on:keydown={(event)=>{if(event.key === 'Enter') i_requested = i_input}}/>
+        <Input type="number" step="0.001" lang="en" min="0.00" max={i_max} bind:value={i_input} id="i_input" style="text-align: center;" 
+        on:blur={() => {i_requested = i_input}} 
+        on:keydown={(event)=>{if(event.key === 'Enter') i_requested = i_input}}
+        on:input={(event) => inputValid(event, 0, i_max, { set: val => i_input = val }, 3)}/>
         <Button color="primary" on:click={()=>(i_requested = i_input = parseFloat(Number(i_requested + 0.10).toFixed(2)))}>+</Button>
       </InputGroup>
 

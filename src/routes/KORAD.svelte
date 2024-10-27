@@ -3,8 +3,9 @@
 
     import { createEventDispatcher } from 'svelte';
     import { Semaphore } from '../lib/semaphore';
-    import { Button, Row, Col, Label, Input, Icon, ButtonGroup, InputGroup, InputGroupText, colorMode, useColorMode, Tooltip, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Table} from '@sveltestrap/sveltestrap';
+    import { Button, Row, Col, Label, Input, Icon, ButtonGroup, InputGroup, InputGroupText, colorMode, useColorMode, Tooltip, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Collapse} from '@sveltestrap/sveltestrap';
     import LineChart from '../components/LineChart.svelte';
+    import ProgrammableTable from '../components/ProgrammableTable.svelte'
     
     let chart:LineChart;
 
@@ -22,7 +23,6 @@
       "6003":[60,3],
       "6005":[60,5],
     }
-
     let writer:any;
     let reader:any;
 
@@ -224,145 +224,161 @@
       serialWrite('SAV'+id.toString()+'\n')
     }
 
+    function cycleOutput(event){
+      const {id, voltage, current} = event.detail
+      if(id == 0){
+        setPSU(false);
+        return;
+      }
+      if(id == 1){
+        setPSU(true);
+      }
+      setVoltage(voltage);
+      setCurrent(current);
+    }
+
     $: if(v_requested){
       setVoltage(v_requested)
     }
     $: if(i_requested){
       setCurrent(i_requested)
     }
+    
   </script>
 
 
 <div class="container mt-4 px-4">
-      <Row class="p-0 mt-2">
-        <div style="width: fit-content;" class="p-0 " >
-          <Button id="disconnect" color="danger"  on:click={() => disconnect()}>
-            Disconnect <Icon name="power" />
-          </Button>
-          <Tooltip target="light" placement="bottom">Disconnect from PSU</Tooltip>
-        </div>
+  <Row class="p-0 mt-2">
+    <div style="width: fit-content;" class="p-0 " >
+      <Button id="disconnect" color="danger"  on:click={() => disconnect()}>
+        Disconnect <Icon name="power" />
+      </Button>
+      <Tooltip target="disconnect" placement="right">Disconnect from PSU</Tooltip>
+    </div>
 
 
-        <div style="width: fit-content;" class="p-0 ms-auto">
-          <ButtonGroup>
-            <Button id="light" color="primary" outline active={$colorMode === 'light'} on:click={() => useColorMode('light')}>
-              <Icon name="sun-fill" />
-            </Button>
-            <Tooltip target="light" placement="bottom">Light Mode</Tooltip>
-            <Button id="dark" color="primary" outline active={$colorMode === 'dark'} on:click={() => useColorMode('dark')}>
-              <Icon name="moon-stars-fill" />
-            </Button>
-            <Tooltip target="dark" placement="bottom">Dark Mode</Tooltip>
-            <Button id="auto" color="primary" outline active={$colorMode === 'auto'} on:click={() => useColorMode('auto')}>
-              <Icon name="circle-half" />
-            </Button>
-            <Tooltip target="auto" placement="bottom">Auto Mode</Tooltip>
-          </ButtonGroup>
-        </div>
+    <div style="width: fit-content;" class="p-0 ms-auto">
+      <ButtonGroup>
+        <Button id="light" color="primary" outline active={$colorMode === 'light'} on:click={() => useColorMode('light')}>
+          <Icon name="sun-fill" />
+        </Button>
+        <Tooltip target="light" placement="bottom">Light Mode</Tooltip>
+        <Button id="dark" color="primary" outline active={$colorMode === 'dark'} on:click={() => useColorMode('dark')}>
+          <Icon name="moon-stars-fill" />
+        </Button>
+        <Tooltip target="dark" placement="bottom">Dark Mode</Tooltip>
+        <Button id="auto" color="primary" outline active={$colorMode === 'auto'} on:click={() => useColorMode('auto')}>
+          <Icon name="circle-half" />
+        </Button>
+        <Tooltip target="auto" placement="bottom">Auto Mode</Tooltip>
+      </ButtonGroup>
+    </div>
+  </Row>
+
+  <Row class="border border-primary rounded mt-2" style="max-height:300px">
+    <LineChart bind:this={chart} id="vi_chart" xLabel="Time (s)" yLabel="Voltage (V)" yMin={0} yMax={v_max + 1} yMin1={0} yMax1={i_max + 0.1} />
+  </Row>
+
+  <Row class="p-0 mt-2">
+    <Col class="border border-primary rounded me-1">
+      <p class="mb-0">Target Voltage (V)</p>
+      <p class="display-1 text-center mt-0"><strong>{v_set < 10 ? `0${v_set.toFixed(2)}` : v_set.toFixed(2)}</strong></p>
+    </Col>
+    <Col class="border border-primary rounded ms-1">
+      <p class="mb-0">Target Current (A)</p>
+      <p class="display-1 text-center mt-0"><strong>{i_set.toFixed(3)}</strong></p>
+    </Col>
+  </Row>
+
+  <Row class="p-0 mt-2">
+    <Col class="border border-primary rounded me-1">
+      <p class="mb-0">Actual Voltage (V)</p>
+      <p class="display-1 text-center mt-0"><strong>{v_out < 10 ? `0${v_out.toFixed(2)}` : v_out.toFixed(2)}</strong></p>
+    </Col>
+    <div class="col border border-primary rounded ms-1" class:bg-danger={!cc_cv_mode && output_status}>
+      <p class="mb-0">Actual Current (A)</p>
+      <p class="display-1 text-center mt-0"><strong>{i_out.toFixed(3)}</strong></p>
+    </div>
+  </Row>
+
+  <Row class="p-0 mt-2">
+    <Col class="me-1 px-0" >
+      <Row class="justify-content-end">
+        <Col>
+          <p class="mb-0">Voltage</p>
+        </Col>
+        <Col xs="auto">
+          <Input type="switch" label="OVP" checked={ovp_mode_status} on:change={()=> setOVP(!ovp_mode_status)}/>
+        </Col>
       </Row>
 
-      <Row class="border border-primary rounded mt-2" style="max-height:300px">
-        <LineChart bind:this={chart} id="vi_chart" xLabel="Time (s)" yLabel="Voltage (V)" yMin={0} yMax={v_max + 1} yMin1={0} yMax1={i_max + 0.1} />
-      </Row>
-
-      <Row class="p-0 mt-2">
-        <Col class="border border-primary rounded me-1">
-          <p class="mb-0">Target Voltage (V)</p>
-          <p class="display-1 text-center mt-0"><strong>{v_set < 10 ? `0${v_set.toFixed(2)}` : v_set.toFixed(2)}</strong></p>
-        </Col>
-        <Col class="border border-primary rounded ms-1">
-          <p class="mb-0">Target Current (A)</p>
-          <p class="display-1 text-center mt-0"><strong>{i_set.toFixed(3)}</strong></p>
-        </Col>
-      </Row>
-
-      <Row class="p-0 mt-2">
-        <Col class="border border-primary rounded me-1">
-          <p class="mb-0">Actual Voltage (V)</p>
-          <p class="display-1 text-center mt-0"><strong>{v_out < 10 ? `0${v_out.toFixed(2)}` : v_out.toFixed(2)}</strong></p>
-        </Col>
-        <div class="col border border-primary rounded ms-1" class:bg-danger={!cc_cv_mode && output_status}>
-          <p class="mb-0">Actual Current (A)</p>
-          <p class="display-1 text-center mt-0"><strong>{i_out.toFixed(3)}</strong></p>
-        </div>
-      </Row>
-
-      <Row class="p-0 mt-2">
-        <Col class="me-1 px-0" >
-          <Row class="justify-content-end">
-            <Col>
-              <p class="mb-0">Voltage</p>
-            </Col>
-            <Col xs="auto">
-              <Input type="switch" label="OVP" checked={ovp_mode_status} on:change={()=> setOVP(!ovp_mode_status)}/>
-            </Col>
-          </Row>
-
-          <InputGroup size="lg">
-            <Button color="primary" on:click={()=>(v_requested = v_input = parseFloat(Number(v_requested - 0.10).toFixed(2)))}>-</Button>
-            <Input type="number" step="0.01" lang="en" min="0.00" max={v_max} bind:value={v_input} id="v_input" style="text-align: center;" on:blur={() => {v_requested = v_input}} on:keydown={(event)=>{if(event.key === 'Enter') v_requested = v_input}}/>
-            <Button color="primary" on:click={()=>(v_requested = v_input = parseFloat(Number(v_requested + 0.10).toFixed(2)))}>+</Button>
-          </InputGroup>
+      <InputGroup size="lg">
+        <Button color="primary" on:click={()=>(v_requested = v_input = parseFloat(Number(v_requested - 0.10).toFixed(2)))}>-</Button>
+        <Input type="number" step="0.01" lang="en" min="0.00" max={v_max} bind:value={v_input} id="v_input" style="text-align: center;" on:blur={() => {v_requested = v_input}} on:keydown={(event)=>{if(event.key === 'Enter') v_requested = v_input}}/>
+        <Button color="primary" on:click={()=>(v_requested = v_input = parseFloat(Number(v_requested + 0.10).toFixed(2)))}>+</Button>
+      </InputGroup>
 
 
-          <Dropdown>
-            <ButtonGroup class="mt-1" sm style="width:100%;">
-              {#each quick_voltages as voltage}
-              <Button class="px-0" color="primary" outline on:click={()=>{setPSU(false); v_requested = v_input = voltage}} >{voltage}V</Button>
-              {/each}
-            <DropdownToggle class="px-1" caret>MEM</DropdownToggle>
-          </ButtonGroup>
-          <DropdownMenu end>
-              <DropdownItem header>
-                <Input type="switch" label="Save" bind:value={memory_save} on:change={()=>{memory_save = !memory_save}}/>
-              </DropdownItem>
-              {#if !memory_save}
-                {#each {length: 5} as _, i}
-                <DropdownItem  on:click={()=> memoryRecall(i+1)}>M{i+1}</DropdownItem>
-                {/each}
-              {:else}
-                {#each {length: 5} as _, i}
-                <DropdownItem  on:click={()=> memorySave(i+1)}>SAV-M{i+1}</DropdownItem>
-                {/each}
-              {/if}
-            </DropdownMenu>
-          </Dropdown>
-
-        </Col>
-
-        <Col class="ms-1 px-0">
-          <Row class="justify-content-end">
-            <Col>
-              <p class="mb-0">Current</p>
-            </Col>
-            <Col xs="auto">
-              <Input type="switch" label="OCP" checked={ocp_mode_status} on:change={()=> setOCP(!ocp_mode_status)}/>
-            </Col>
-          </Row>
-          <InputGroup size="lg">
-            <Button color="primary" on:click={()=>(i_requested = i_input = parseFloat(Number(i_requested - 0.10).toFixed(2)))}>-</Button>
-            <Input type="number" step="0.001" lang="en" min="0.00" max={i_max} bind:value={i_input} id="i_input" style="text-align: center;" on:blur={() => {i_requested = i_input}} on:keydown={(event)=>{if(event.key === 'Enter') i_requested = i_input}}/>
-            <Button color="primary" on:click={()=>(i_requested = i_input = parseFloat(Number(i_requested + 0.10).toFixed(2)))}>+</Button>
-          </InputGroup>
-
-          <ButtonGroup class="mt-1" sm style="width:100%;">
-            {#each quick_currents as current}
-            <Button class="px-0" color="primary" outline on:click={()=>{i_requested = i_input = current}}>{current}A</Button>
+      <Dropdown>
+        <ButtonGroup class="mt-1" sm style="width:100%;">
+          {#each quick_voltages as voltage}
+          <Button class="px-0" color="primary" outline on:click={()=>{setPSU(false); v_requested = v_input = voltage}} >{voltage}V</Button>
+          {/each}
+        <DropdownToggle class="px-1" caret>MEM</DropdownToggle>
+      </ButtonGroup>
+      <DropdownMenu end>
+          <DropdownItem header>
+            <Input type="switch" label="Save" bind:value={memory_save} on:change={()=>{memory_save = !memory_save}}/>
+          </DropdownItem>
+          {#if !memory_save}
+            {#each {length: 5} as _, i}
+            <DropdownItem  on:click={()=> memoryRecall(i+1)}>M{i+1}</DropdownItem>
             {/each}
-          </ButtonGroup>
+          {:else}
+            {#each {length: 5} as _, i}
+            <DropdownItem  on:click={()=> memorySave(i+1)}>SAV-M{i+1}</DropdownItem>
+            {/each}
+          {/if}
+        </DropdownMenu>
+      </Dropdown>
+
+    </Col>
+
+    <Col class="ms-1 px-0">
+      <Row class="justify-content-end">
+        <Col>
+          <p class="mb-0">Current</p>
+        </Col>
+        <Col xs="auto">
+          <Input type="switch" label="OCP" checked={ocp_mode_status} on:change={()=> setOCP(!ocp_mode_status)}/>
         </Col>
       </Row>
+      <InputGroup size="lg">
+        <Button color="primary" on:click={()=>(i_requested = i_input = parseFloat(Number(i_requested - 0.10).toFixed(2)))}>-</Button>
+        <Input type="number" step="0.001" lang="en" min="0.00" max={i_max} bind:value={i_input} id="i_input" style="text-align: center;" on:blur={() => {i_requested = i_input}} on:keydown={(event)=>{if(event.key === 'Enter') i_requested = i_input}}/>
+        <Button color="primary" on:click={()=>(i_requested = i_input = parseFloat(Number(i_requested + 0.10).toFixed(2)))}>+</Button>
+      </InputGroup>
 
-      <Row class="p-0 mt-2">
-        <Col class="px-0 ">
-          <Button size="lg" style="width: 100%; min-height: 60px" color={(output_status ? 'success' : 'danger')} on:click={()=> setPSU(!output_status)}>
-            <Icon name="i" />
-            <span>{output_status ? 'ON' : 'OFF'}</span>
-          </Button>
-        </Col>
-      </Row>
+      <ButtonGroup class="mt-1" sm style="width:100%;">
+        {#each quick_currents as current}
+        <Button class="px-0" color="primary" outline on:click={()=>{i_requested = i_input = current}}>{current}A</Button>
+        {/each}
+      </ButtonGroup>
+    </Col>
+  </Row>
 
-      
+  <Row class="p-0 mt-2">
+    <Col class="px-0 ">
+      <Button size="lg" style="width: 100%; min-height: 60px" color={(output_status ? 'success' : 'danger')} on:click={()=> setPSU(!output_status)}>
+        <Icon name="i" />
+        <span>{output_status ? 'ON' : 'OFF'}</span>
+      </Button>
+    </Col>
+  </Row>
+
+
+
+  <ProgrammableTable on:callSetOutput={cycleOutput}/>
 </div>
 
   

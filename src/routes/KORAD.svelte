@@ -3,7 +3,7 @@
 
     import { createEventDispatcher } from 'svelte';
     import { Semaphore } from '../lib/semaphore';
-    import { Button, Row, Col, Label, Input, Icon, ButtonGroup, InputGroup, InputGroupText, colorMode, useColorMode, Tooltip, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Collapse} from '@sveltestrap/sveltestrap';
+    import { Button, Row, Col, Label, Input, Icon, ButtonGroup, InputGroup, InputGroupText, colorMode, useColorMode, Tooltip, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Modal} from '@sveltestrap/sveltestrap';
     import LineChart from '../components/LineChart.svelte';
     import ProgrammableTable from '../components/ProgrammableTable.svelte'
     import { persisted } from 'svelte-persisted-store'
@@ -15,14 +15,14 @@
     let power_off_disconnect = persisted('power_off_disconnect', true)
     let power_off_ov_v_change = persisted('power_off_ov_v_change', false)
     let show_power = persisted('show_power', false)
+    let quick_voltages = persisted('quick_voltages', [3.3, 5, 12, 24, 30])
+    let quick_currents = persisted('quick_currents', [0.1, 0.5, 1, 3, 5])
 
     let chart:LineChart;
 
     const dispatch = createEventDispatcher();
     const serialSemaphore = new Semaphore(1);
 
-    const quick_voltages = [3.3, 5, 12, 24, 30]
-    const quick_currents = [0.1, 0.5, 1, 3, 5]
 
     const psu_type: { [key: string]: [number, number] } = {
       "3003":[30,3],
@@ -277,7 +277,8 @@
       setCurrent(i_requested)
       i_user.set(i_requested)
     }
-    
+    let editModalOpen = false;
+    const toggleEditModal = () => (editModalOpen = !editModalOpen);
   </script>
 
 
@@ -326,6 +327,36 @@
               <DropdownItem header>Other options</DropdownItem>
               <DropdownItem >
                 <Input type="switch" reverse label="Show power" bind:checked={$show_power}/>
+              </DropdownItem>
+              <DropdownItem divider />
+              <DropdownItem >
+                <Button outline color="primary" on:click={toggleEditModal}>Edit quick outputs</Button>
+                <Modal body header="Edit quick outputs" isOpen={editModalOpen} toggle={toggleEditModal}>
+                  <p>Voltage</p>
+                  <div style="display: flex; gap: 10px;">
+                    {#each $quick_voltages as value, index}
+                      <Input 
+                        type="number" 
+                        bind:value={$quick_voltages[index]} 
+                        on:input={(event) => inputValid(event, 0, v_max, { set: val => $quick_voltages[index] = val }, 2)} 
+                        step="0.01" lang="en" min="0.00" max={v_max}
+                        style="width: 5rem; text-align: center;"
+                      />
+                    {/each}
+                  </div>
+                  <p>Current</p>
+                  <div style="display: flex; gap: 10px;">
+                    {#each $quick_currents as value, index}
+                      <Input 
+                        type="number" 
+                        bind:value={$quick_currents[index]} 
+                        on:input={(event) => inputValid(event, 0, i_max, { set: val => $quick_currents[index] = val }, 3)} 
+                        step="0.001" lang="en" min="0.00" max={i_max}
+                        style="width: 5rem; text-align: center;"
+                      />
+                    {/each}
+                  </div>
+                </Modal>
               </DropdownItem>
               <DropdownItem divider />
             </DropdownMenu>
@@ -393,8 +424,8 @@
 
       <Dropdown>
         <ButtonGroup class="mt-1" sm style="width:100%;">
-          {#each quick_voltages as voltage}
-          <Button class="px-0" color="primary" outline on:click={()=>{setPSU(false); v_requested = v_input = voltage}} >{voltage}V</Button>
+          {#each $quick_voltages as voltage}
+          <Button class="px-0" color="primary" outline on:click={()=>{setPSU(false); v_requested = v_input = voltage}}><small>{voltage}V</small></Button>
           {/each}
         <DropdownToggle class="px-1" caret>MEM</DropdownToggle>
       </ButtonGroup>
@@ -435,8 +466,8 @@
       </InputGroup>
 
       <ButtonGroup class="mt-1" sm style="width:100%;">
-        {#each quick_currents as current}
-        <Button class="px-0" color="primary" outline on:click={()=>{i_requested = i_input = current}}>{current}A</Button>
+        {#each $quick_currents as current}
+        <Button class="px-0" color="primary" outline on:click={()=>{i_requested = i_input = current}}><small>{current}A</small></Button>
         {/each}
       </ButtonGroup>
     </Col>

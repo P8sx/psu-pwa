@@ -133,6 +133,7 @@
 
 <Row class="p-0 mt-2 mx-0">
   <Collapse {isOpen} class="px-0">
+    
     <Col class="border border-primary rounded">
       <div class="d-flex justify-content-end align-items-center my-2" >
         <Progress class="mx-3" style="width:100%; height: 2rem;" multi>
@@ -148,8 +149,8 @@
         </Progress>
         <Button class="me-2" color={cycleStatus?"danger":"success"} style="width:fit-content" on:click={()=>{cycle(!cycleStatus)}}>{cycleStatus?"STOP":"Start"}</Button>
       </div>
-      
-      <Table class="mx-3" style="width: fit-content;">
+      <div class="mx-1">
+      <Table style="width: 100%;">
         <thead>
           <tr>
             <th>No.</th>
@@ -193,6 +194,7 @@
           {/each}
         </tbody>
       </Table>
+    </div>
     </Col>
   </Collapse>
 </Row>

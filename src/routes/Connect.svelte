@@ -7,8 +7,6 @@
     }
   
   const dispatch = createEventDispatcher();
-  let dupa = 5;
-
 </script>
 
 <style>

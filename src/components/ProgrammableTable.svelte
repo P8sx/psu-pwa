@@ -3,11 +3,13 @@
     import { Button, Input, Icon, Table, Col, Row, Progress, Collapse} from '@sveltestrap/sveltestrap';
     import { dndzone } from 'svelte-dnd-action';
     import {flip} from "svelte/animate";
-    
+    import { persisted } from 'svelte-persisted-store'
+
     const dispatch = createEventDispatcher();
     const flipDurationMs = 0;
 
-        
+    let preferences = persisted('prog_points', [])
+
     export let v_max = 31
     export let i_max = 5
 
@@ -19,7 +21,7 @@
     }
 
     let totalTime:number = 0
-    let items: Item[] = [];
+    let items: Item[] = $preferences;
     let currentCycle: number = 0
     let currentCycleTimeStart: number = 0
     let currentCycleTimeLeft: number = 0
@@ -77,14 +79,13 @@
 
     $: if(items){
       totalTime = 0
+      preferences.set(items)
       items.forEach(element => {
         totalTime +=+ element.period
       });
-      console.log(totalTime)
     }
 
     function setOutput(step: Item){
-      console.log(step)
       dispatch('callSetOutput', { id: step.id, voltage: step.target_v, current: step.target_c });
     }
 

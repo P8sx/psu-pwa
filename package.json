@@ -36,6 +36,7 @@
 	"dependencies": {
 		"@sveltestrap/sveltestrap": "6.2.5",
 		"chart.js": "^4.4.5",
-		"svelte-dnd-action": "^0.9.52"
+		"svelte-dnd-action": "^0.9.52",
+		"svelte-persisted-store": "^0.11.0"
 	}
 }

@@ -1,5 +1,5 @@
 {
-	"name": "KORAD PWA",
+	"name": "PSU PWA",
 	"short_name": "psu-pwa",
 	"start_url": "/psu-pwa",
 	"display": "standalone",
